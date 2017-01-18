@@ -1,23 +1,27 @@
 #-*-coding:utf-8-*-
-import sys,socket
+import sys,threading,time,socket
+
+
+def tcplink(conn,addr):
+  print ('Accept new connection form {0}'.format(addr))
+  conn.send('Welcome!')
+  while True:
+    data = conn.recv(1024)
+    time.sleep(1)
+    if data == 'exit' or not data:
+      break
+    else:
+      conn.send('hi'+format(data))
+  conn.close()
+  print ('Connection from {0} closed.',format(addr))
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 建立套接字
-s.connect(('www.sina.com.cn',80))
-s.send('GET / HTTP/1.1\r\nHost:www.sina.com.cn\r\nConnection: close\r\n\r\n')
-
-# 接收数据：
-buffer = []
+s.bind(('localhost',9999))
+s.listen(5)
+print 'Waiting for connection...'
 while True:
-  # 每次最多接收K字节：
-  d = s.recv(1024)
-  if d:
-    buffer.append(d)
-  else:
-    break
-data =d.join(buffer)
-s.close()
-header,html = data.split('\r\n\r\n',1)
-print header
-# 把接收的数据写入文件：
-with open('C:\Users\IBM_ADMIN\Desktop\sina.html','wb') as f:
-  f.write(html)
+  # 接受一个新连接
+  conn,addr = s.accept()
+  # 创建一个新线程处理TCP连接
+  t = threading.Thread(target=tcplink, args=(conn, addr))
+  t.start()
