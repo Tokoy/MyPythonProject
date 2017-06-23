@@ -104,7 +104,7 @@ class Monkey(object):
         else:
             self.status.reverse()
             self.gameover = True
-
+        self.obstacles.pos = new
         if not new in self.available_grid():
             self.display_obstacles()
         else:
