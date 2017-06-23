@@ -51,6 +51,21 @@ class Obstacles(object):
     def display(self):
         self.grid.draw(self.pos, self.color)
 
+    def falldown(self):
+        obstaclespos=self.pos
+        new = (obstaclespos[0], obstaclespos[1] + 1)
+        self.grid.draw(obstaclespos, self.grid.bg)
+        # 如果障碍物位置和离开画布
+        self.pos = new
+        if not new in self.available_grid():
+            self.set_pos()
+            self.display()
+        else:
+            self.grid.draw(new, color=self.color)
+
+    #判断障碍物是否在画布里面
+    def available_grid(self):
+        return [i for i in self.grid.grid_list if i not in self.pos]
 
 class Monkey(object):
     #设置属性
@@ -66,9 +81,6 @@ class Monkey(object):
         self.gameover = False
         self.score = 0
 
-    #判断障碍物是否在画布里面
-    def available_grid(self):
-        return [i for i in self.grid.grid_list if i not in self.obstacles.pos]
 
     #改变前进方向
     def change_direction(self, direction):
@@ -84,31 +96,27 @@ class Monkey(object):
 
     #行动，默认的向前
     def move(self):
+        self.obstacles.falldown()
         obstacleshead = self.obstacles.pos
         monkeyhead=self.body
-        if self.direction == 'Up':
-            new = (obstacleshead[0], obstacleshead[1] + 1)
-        # elif self.direction == 'Down':
-        #     new = (head[0], head[1] + 1)
-        elif self.direction == 'Left':
-            new = (monkeyhead[0] - 1, monkeyhead[1])
+        if self.direction == 'Left':
+            newpos = (monkeyhead[0] - 1, monkeyhead[1])
+            self.body = newpos
         elif self.direction == 'Right':
-            new = (monkeyhead[0] + 1, monkeyhead[1])
-        else:
-            new = (obstacleshead[0], obstacleshead[1] + 1)
-
+            newpos = (monkeyhead[0] + 1, monkeyhead[1])
+            self.body = newpos
         # 如果障碍物位置和头位置不一致
         if not monkeyhead == obstacleshead:
-            self.grid.draw(obstacleshead, self.grid.bg)
+            self.grid.draw(monkeyhead, self.grid.bg)
             self.score += 1
         else:
             self.status.reverse()
             self.gameover = True
-        self.obstacles.pos = new
-        if not new in self.available_grid():
-            self.display_obstacles()
-        else:
-            self.grid.draw(new, color=self.obstacles.color)
+
+        self.display()
+        # self.grid.draw(new2, color=self.monkeyhead.color)
+
+
 
 class MonkeyGame(Frame):
     #静态绘制好视图
@@ -137,6 +145,9 @@ class MonkeyGame(Frame):
             if message == 'ok':
                 sys.exit()
         self.after(self.monkey.speed, self.run)
+
+
+
 
 if __name__ == '__main__':
     root = Tk()
