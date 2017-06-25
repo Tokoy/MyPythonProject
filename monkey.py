@@ -73,14 +73,14 @@ class Monkey(object):
         self.grid = Grid
         self.body = (2, 9)
         self.status = ['run', 'stop']
-        self.direction = "Up"
+        self.direction ='Up'
         self.speed = 300
         self.color = "#5FA8D9"
-        self.obstacles = Obstacles(self.grid)
-        self.display_obstacles()
         self.gameover = False
         self.score = 0
-
+        self.obstacles = Obstacles(self.grid)
+        self.obstacles.display()
+        self.dirstatus=0
 
     #改变前进方向
     def change_direction(self, direction):
@@ -90,31 +90,36 @@ class Monkey(object):
     def display(self):
             self.grid.draw(self.body, self.color)
 
-    #显示障碍物
-    def display_obstacles(self):
-            self.obstacles.display()
-
-    #行动，默认的向前
-    def move(self):
+    def falldown(self):
         self.obstacles.falldown()
+        self.isimpact()
+
+    #行动，只能左右
+    def move(self):
         obstacleshead = self.obstacles.pos
         monkeyhead=self.body
         if self.direction == 'Left':
             newpos = (monkeyhead[0] - 1, monkeyhead[1])
-            self.body = newpos
         elif self.direction == 'Right':
             newpos = (monkeyhead[0] + 1, monkeyhead[1])
+        if newpos in self.available_grid():
             self.body = newpos
-        # 如果障碍物位置和头位置不一致
-        if not monkeyhead == obstacleshead:
             self.grid.draw(monkeyhead, self.grid.bg)
+            self.grid.draw(newpos, color=self.color)
+            self.isimpact()
+
+
+    # 判断主方块是否在画布里面
+    def available_grid(self):
+        return [i for i in self.grid.grid_list if i not in self.body]
+
+    def isimpact(self):
+        # 如果障碍物位置和头位置不一致
+        if not self.body == self.obstacles.pos:
             self.score += 1
         else:
             self.status.reverse()
             self.gameover = True
-
-        self.display()
-        # self.grid.draw(new2, color=self.monkeyhead.color)
 
 
 
@@ -128,10 +133,11 @@ class MonkeyGame(Frame):
         self.bind_all("<KeyRelease>", self.key_release)
         self.monkey.display()
 
+
     def key_release(self, event):
         key = event.keysym
-        key_dict = {"Up": "Down", "Down": "Up", "Left": "Right", "Right": "Left"}
-        if key_dict.has_key(key) and not key == key_dict[self.monkey.direction]:
+        key_dict = {"Left": "Right", "Right": "Left"}
+        if key_dict.has_key(key):
             self.monkey.change_direction(key)
             self.monkey.move()
         elif key == 'p':
@@ -139,7 +145,7 @@ class MonkeyGame(Frame):
 
     def run(self):
         if not self.monkey.status[0] == 'stop':
-            self.monkey.move()
+            self.monkey.falldown()
         if self.monkey.gameover == True:
             message = tkMessageBox.showinfo("Game Over", "your score: %d" % self.monkey.score)
             if message == 'ok':
