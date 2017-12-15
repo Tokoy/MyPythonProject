@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/*二人零合ゲームとは一方勝つなら、もう一方は必ず負け、ゲーム双方の収益と損益は加えていつも零です*/
 int main(int argc,char **argv){
     int n = 0,i,j,k,m,p;
     int num_game;
